@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="PingMe – Chat with your friends in real-time. No account needed." />
+  <title>PingMe – Real-Time Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- PeerJS for real-time P2P messaging -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ======= STEP 1: NAME SCREEN ======= -->
+  <div id="screen-name" class="screen active">
+    <div class="auth-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="orb orb-3"></div>
+    </div>
+    <div class="auth-wrap">
+      <div class="logo-block">
+        <div class="logo-svg">
+          <svg viewBox="0 0 60 60" fill="none">
+            <circle cx="30" cy="30" r="30" fill="url(#lg)"/>
+            <path d="M14 40 L17 32 C14.5 29 13 25.5 13 21.5 C13 13.5 20.5 7 30 7 C39.5 7 47 13.5 47 21.5 C47 29.5 39.5 36 30 36 C27 36 24.2 35.1 21.8 33.5 Z" fill="white"/>
+            <circle cx="23" cy="21" r="2.5" fill="url(#lg)"/>
+            <circle cx="30" cy="21" r="2.5" fill="url(#lg)"/>
+            <circle cx="37" cy="21" r="2.5" fill="url(#lg)"/>
+            <defs>
+              <linearGradient id="lg" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6C63FF"/>
+                <stop offset="1" stop-color="#3ECFCF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <h1 class="app-title">PingMe</h1>
+        <p class="app-tagline">Real-time chat. No account needed. ⚡</p>
+      </div>
+
+      <div class="card">
+        <h2>What's your name?</h2>
+        <p class="card-sub">This is how your friend will see you</p>
+        <div class="form-group">
+          <input type="text" id="input-name" placeholder="Enter your name..." maxlength="30" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label class="label">Pick your color</label>
+          <div class="color-row" id="color-picker">
+            <div class="color-dot selected" data-color="#6C63FF" style="background:#6C63FF"></div>
+            <div class="color-dot" data-color="#FF6584" style="background:#FF6584"></div>
+            <div class="color-dot" data-color="#43E97B" style="background:#43E97B"></div>
+            <div class="color-dot" data-color="#F7971E" style="background:#F7971E"></div>
+            <div class="color-dot" data-color="#3ECFCF" style="background:#3ECFCF"></div>
+            <div class="color-dot" data-color="#FA709A" style="background:#FA709A"></div>
+            <div class="color-dot" data-color="#a855f7" style="background:#a855f7"></div>
+          </div>
+        </div>
+        <button class="btn-primary" id="btn-continue">Continue →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 2: CREATE OR JOIN ======= -->
+  <div id="screen-lobby" class="screen">
+    <div class="auth-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+    </div>
+    <div class="auth-wrap">
+      <div class="logo-block small">
+        <div class="logo-svg small-logo">
+          <svg viewBox="0 0 60 60" fill="none">
+            <circle cx="30" cy="30" r="30" fill="url(#lg2)"/>
+            <path d="M14 40 L17 32 C14.5 29 13 25.5 13 21.5 C13 13.5 20.5 7 30 7 C39.5 7 47 13.5 47 21.5 C47 29.5 39.5 36 30 36 C27 36 24.2 35.1 21.8 33.5 Z" fill="white"/>
+            <circle cx="23" cy="21" r="2.5" fill="url(#lg2)"/>
+            <circle cx="30" cy="21" r="2.5" fill="url(#lg2)"/>
+            <circle cx="37" cy="21" r="2.5" fill="url(#lg2)"/>
+            <defs>
+              <linearGradient id="lg2" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+                <stop stop-color="#6C63FF"/>
+                <stop offset="1" stop-color="#3ECFCF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="app-title-sm">PingMe</span>
+      </div>
+
+      <div class="user-greeting" id="user-greeting"></div>
+
+      <div class="lobby-grid">
+        <!-- Create Room -->
+        <div class="lobby-card" id="card-create">
+          <div class="lobby-icon create-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          </div>
+          <h3>Create a Room</h3>
+          <p>Start a chat room and share the link with your friend</p>
+          <button class="btn-primary" id="btn-create-room">Create Room 🔗</button>
+        </div>
+
+        <!-- Join Room -->
+        <div class="lobby-card" id="card-join">
+          <div class="lobby-icon join-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          </div>
+          <h3>Join a Room</h3>
+          <p>Have a room code? Enter it below to join your friend</p>
+          <div class="join-input-row">
+            <input type="text" id="input-room-code" placeholder="Paste room code..." />
+            <button class="btn-join" id="btn-join-room">Join</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 3: WAITING FOR FRIEND ======= -->
+  <div id="screen-waiting" class="screen">
+    <div class="auth-bg">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+    </div>
+    <div class="auth-wrap">
+      <div class="card waiting-card">
+        <div class="waiting-anim">
+          <div class="pulse-ring"></div>
+          <div class="waiting-logo">
+            <svg viewBox="0 0 60 60" fill="none" width="40" height="40">
+              <circle cx="30" cy="30" r="30" fill="url(#lg3)"/>
+              <path d="M14 40 L17 32 C14.5 29 13 25.5 13 21.5 C13 13.5 20.5 7 30 7 C39.5 7 47 13.5 47 21.5 C47 29.5 39.5 36 30 36 C27 36 24.2 35.1 21.8 33.5 Z" fill="white"/>
+              <defs>
+                <linearGradient id="lg3" x1="0" y1="0" x2="60" y2="60" gradientUnits="userSpaceOnUse">
+                  <stop stop-color="#6C63FF"/><stop offset="1" stop-color="#3ECFCF"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <h2>Room Created! 🎉</h2>
+        <p class="card-sub">Share this link with your friend to start chatting</p>
+
+        <div class="share-box">
+          <div class="share-link" id="share-link-display"></div>
+          <button class="btn-copy" id="btn-copy-link">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+
+        <div class="room-code-box">
+          <span class="room-code-label">Room Code</span>
+          <span class="room-code-value" id="room-code-display"></span>
+        </div>
+
+        <div class="waiting-status">
+          <div class="dot-loader"><span></span><span></span><span></span></div>
+          <span>Waiting for your friend to join...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= STEP 4: CHAT SCREEN ======= -->
+  <div id="screen-chat" class="screen">
+    <div class="chat-layout">
+      <!-- Header -->
+      <div class="chat-header">
+        <div class="chat-peer-info">
+          <div class="avatar" id="peer-avatar"></div>
+          <div>
+            <div class="peer-name" id="peer-name-display">Connecting...</div>
+            <div class="peer-status" id="peer-status">●  Connected</div>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="room-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+            <span id="header-room-code"></span>
+          </div>
+          <button class="btn-invite" id="btn-invite" title="Invite friend">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+            Share Link
+          </button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="system-msg" id="system-join-msg"></div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-row" id="typing-row" style="display:none">
+        <div class="typing-bubble">
+          <span></span><span></span><span></span>
+        </div>
+        <small id="typing-label"></small>
+      </div>
+
+      <!-- Input -->
+      <div class="input-bar">
+        <button class="icon-btn emoji-toggle" id="emoji-toggle">😊</button>
+        <div class="input-wrap">
+          <textarea id="msg-input" placeholder="Type a message..." rows="1"></textarea>
+        </div>
+        <button class="btn-send" id="btn-send" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+
+      <!-- Emoji Panel -->
+      <div class="emoji-panel" id="emoji-panel" style="display:none">
+        <div class="emoji-grid" id="emoji-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Share Modal -->
+  <div class="modal-bg" id="share-modal" style="display:none">
+    <div class="share-modal">
+      <h3>📤 Share with your friend</h3>
+      <p>Send this link — when they open it, you'll be connected!</p>
+      <div class="share-box modal-share-box">
+        <div class="share-link" id="modal-share-link"></div>
+        <button class="btn-copy" id="modal-copy-btn">Copy</button>
+      </div>
+      <button class="btn-close-modal" id="close-share-modal">Done ✓</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" style="display:none"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
